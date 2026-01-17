@@ -27,6 +27,13 @@ class FavoriteBase(BaseModel):
     document: str | None = None
     status: str | None = None
 
+    @field_validator("auction_date", mode="before")
+    @classmethod
+    def validate_auction_date(cls, v):
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
+
 
 class FavoriteCreate(FavoriteBase):
     user_uuid: str
