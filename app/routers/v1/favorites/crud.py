@@ -12,7 +12,7 @@ from app.database.db.session import get_async_db
 from app.database.schemas.favorite import FavoriteRead, FavoriteCreate
 from app.routers.v1.favorites.admin import admin_favorite_router
 from app.rpc_client.auction_api import ApiRpcClient
-from app.schemas.favorite import FavoriteIn
+from app.schemas.favorite import FavoriteIn, FavoriteSort
 from app.schemas.pagination import FavoritesPage
 
 favorites_router = APIRouter(prefix='/favorites')
@@ -20,15 +20,24 @@ favorites_router = APIRouter(prefix='/favorites')
 favorites_router.include_router(admin_favorite_router, tags=['admin'])
 
 
-@favorites_router.get('/', response_model=FavoritesPage,
-                      description=f'Get all favorites, required permissions: {Permissions.FAVORITES_READ.value}')
+@favorites_router.get(
+    '/', 
+    response_model=FavoritesPage,
+    description=f'Get all favorites, required permissions: {Permissions.FAVORITES_READ.value}'
+)
 async def get_all_favorites_for_user(
         db: AsyncSession = Depends(get_async_db),
+        sort: FavoriteSort = Depends(),
         user: HeaderUser = Depends(require_one_of_permissions(Permissions.FAVORITES_READ.value, Permissions.FAVORITES_OWN_FULL))
 ):
     user_uuid = user.uuid
     favorite_service = FavoriteService(db)
-    stmt = await favorite_service.get_all_by_user_uuid(user_uuid, True)
+    stmt = await favorite_service.get_all_by_user_uuid(
+        user_uuid,
+        get_stmt=True,
+        sort_by=sort.sort_by,
+        sort_order=sort.sort_order,
+    )
     return await apaginate(db, stmt)
 
 @favorites_router.get('/for-lot', response_model=FavoriteRead, description='Get favorite for lot, required permissions:'
