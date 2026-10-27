@@ -10,8 +10,9 @@ from app.schemas.pagination import FavoritesPage
 
 admin_favorite_router = APIRouter(prefix='/for-user')
 
-@admin_favorite_router.get('/', response_model=FavoritesPage, dependencies=[Depends(require_permissions(Permissions.FAVORITES_READ_ALL))],
+@admin_favorite_router.get('', response_model=FavoritesPage, dependencies=[Depends(require_permissions(Permissions.FAVORITES_READ_ALL))],
                       description=f'Get all favorites for specific user, required permissions: {Permissions.FAVORITES_READ_ALL.value}')
+@admin_favorite_router.get('/', include_in_schema=False)
 async def get_all_favorites_for_user(
         db: AsyncSession = Depends(get_async_db),
         user_uuid: str = Query(...)

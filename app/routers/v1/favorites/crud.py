@@ -21,10 +21,11 @@ favorites_router.include_router(admin_favorite_router, tags=['admin'])
 
 
 @favorites_router.get(
-    '/', 
+    '',
     response_model=FavoritesPage,
     description=f'Get all favorites, required permissions: {Permissions.FAVORITES_READ.value}'
 )
+@favorites_router.get('/', include_in_schema=False)
 async def get_all_favorites_for_user(
         db: AsyncSession = Depends(get_async_db),
         sort: FavoriteSort = Depends(),
@@ -54,8 +55,9 @@ async def get_favorite_for_lot(
     else:
         raise BadRequestProblem(detail='Favorite not found')
 
-@favorites_router.post('/', response_model=FavoriteRead,
+@favorites_router.post('', response_model=FavoriteRead,
                        description=f'Add lot to favorites, required permissions: {Permissions.FAVORITES_WRITE.value}')
+@favorites_router.post('/', include_in_schema=False)
 async def add_lot_to_favorites(
         data: FavoriteIn = Body(...),
         db: AsyncSession = Depends(get_async_db),
